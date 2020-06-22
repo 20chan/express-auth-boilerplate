@@ -1,0 +1,37 @@
+version: "2"
+services:
+  note-proxy:
+    container_name: note-proxy
+    image: caddy
+    depends_on:
+      - note-server
+      - note-client
+    restart: always
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 7000:7000
+  note-server:
+    build: ./server
+    container_name: note-server
+    ports:
+      - 7001:7001
+    volumes:
+      - ./server/app:/app
+      - ./config:/app/config
+    environment:
+      PORT: 7001
+      ACCOUNTS_PATH: "/app/config/accounts.json"
+      AUTH_EXPIRES: 3600
+    env_file:
+      - ./config/jwt-secret
+  note-client:
+    build: ./client
+    container_name: note-client
+    ports:
+      - 7002:7002
+    volumes:
+      - ./client/app:/app
+    stdin_open: true
+    environment:
+      PORT: 7002
